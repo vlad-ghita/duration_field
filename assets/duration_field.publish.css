@@ -1,0 +1,17 @@
+.field-duration .settings {
+	margin-top: -15px;
+}
+
+.field-duration .settings label {
+	display: inline-block;
+	margin-right: 10px;
+}
+
+.field-duration .settings input {
+	text-align: right;
+	width: 30px;
+}
+
+.field-duration .settings input.fractions {
+	width: 50px;
+}
