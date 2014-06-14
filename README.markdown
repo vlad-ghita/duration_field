@@ -13,9 +13,18 @@ Allows input of duration through `duration` settings:
 
 ## Features:
 
-- enable / disable usage of each setting. At a very minimum, `seconds` are enforced.
+- enable / disable usage of each setting. At a very minimum, `seconds` are enforced. `fractions` are allowed only with `seconds`
 - sorting
-- filtering: `mysql: value > 132456798.123`. Supply a timestamp, including fractions of second if you want.
+- filtering
+
+## Filters:
+
+- Equality: `X`
+- Larger: `greater than X`
+- Equal or larger: `equal to or greater than X`
+- Less: `less than X`
+- Equal or less: `equal to or less than X`
+- Range: `X to Y`
 
 ## XML result
 

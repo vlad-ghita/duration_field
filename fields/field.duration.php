@@ -170,7 +170,7 @@
 			}
 			$container->appendChild($label);
 
-			$data              = $this->makeDuration($data['value']);
+			$data              = self::makeDuration($data['value'], $this->get('settings'));
 			$settings          = $this->get('settings');
 			$settingsContainer = new XMLElement('div', null, array('class' => 'settings'));
 
@@ -257,7 +257,7 @@
 					$duration->{$durSetting} = isset($data[$durSetting]) ? (int) $data[$durSetting] : 0;
 				}
 
-				$timestamp = $this->makeTimestamp($duration);
+				$timestamp = self::makeTimestamp($duration);
 			}
 			else {
 				$timestamp = $data;
@@ -281,7 +281,7 @@
 			$result->setAttribute('timestamp', $data['value']);
 
 			// set duration fields
-			$duration = $this->makeDuration($data['value']);
+			$duration = self::makeDuration($data['value'], $this->get('settings'));
 
 			$settings = $this->get('settings');
 
@@ -305,7 +305,7 @@
 		}
 
 		public function prepareTableValue($data, XMLElement $link = null, $entry_id = null) {
-			$duration = $this->makeDuration($data['value']);
+			$duration = self::makeDuration($data['value'], $this->get('settings'));
 
 			$settings = $this->get('settings');
 
@@ -371,20 +371,42 @@
 		}
 
 		public function buildDSRetrievalSQL($data, &$joins, &$where, $andOperation = false) {
-			// Check its not a regexp
-			if (preg_match('/^mysql:/i', $data[0])) {
-				$fieldId = $this->get('id');
 
-				$expression = str_replace(array(
-					'mysql:',
-					'value'
-				), array(
-					'',
-					" `t$fieldId`.`value` "
-				), $data[0]);
+			// X to Y support
+			if(preg_match('/^(-?(?:\d+(?:\.\d+)?|\.\d+)) to (-?(?:\d+(?:\.\d+)?|\.\d+))$/i', $data[0], $match)) {
 
-				$joins .= " LEFT JOIN `tbl_entries_data_$fieldId` AS `t$fieldId` ON (`e`.`id` = `t$fieldId`.entry_id) ";
+				$field_id = $this->get('id');
+
+				$joins .= " LEFT JOIN `tbl_entries_data_$field_id` AS `t$field_id` ON (`e`.`id` = `t$field_id`.entry_id) ";
+				$where .= " AND `t$field_id`.`value` BETWEEN {$match[1]} AND {$match[2]} ";
+
+			}
+
+			// Equal to or less/greater than X
+			else if(preg_match('/^(equal to or )?(less|greater) than (-?(?:\d+(?:\.\d+)?|\.\d+))$/i', $data[0], $match)) {
+				$field_id = $this->get('id');
+
+				$expression = " `t$field_id`.`value` ";
+
+				switch($match[2]) {
+					case 'less':
+						$expression .= '<';
+						break;
+
+					case 'greater':
+						$expression .= '>';
+						break;
+				}
+
+				if($match[1]){
+					$expression .= '=';
+				}
+
+				$expression .= " {$match[3]} ";
+
+				$joins .= " LEFT JOIN `tbl_entries_data_$field_id` AS `t$field_id` ON (`e`.`id` = `t$field_id`.entry_id) ";
 				$where .= " AND $expression ";
+
 			}
 
 			else {
@@ -404,12 +426,18 @@
 		 * Build duration from given timestamp.
 		 *
 		 * @param double $timestamp
-		 * @param bool   $respectSettings
+		 * @param array  $settings - settings to respect
 		 *
 		 * @return object {weeks, days, hours, minutes, seconds, fractions}
 		 */
-		public function makeDuration($timestamp, $respectSettings = true) {
-			list($whole, $fractions) = explode(".", $timestamp);
+		public static function makeDuration($timestamp, $settings = array()) {
+			if (strpos($timestamp, ".")) {
+				list($whole, $fractions) = explode(".", $timestamp);
+			}
+			else {
+				$whole     = $timestamp;
+				$fractions = 0;
+			}
 
 			$duration = (object) array();
 
@@ -427,9 +455,7 @@
 			$duration->fractions = $fractions !== null ? (int) $fractions : 0;
 
 			// if settings must be respected, propagate results to where necessary
-			if ($respectSettings) {
-				$settings = $this->get('settings');
-
+			if (!empty($settings)) {
 				$use_weeks     = in_array('weeks', $settings);
 				$use_days      = in_array('days', $settings);
 				$use_hours     = in_array('hours', $settings);
@@ -474,11 +500,11 @@
 		 *
 		 * @see makeDuration() for informtion about $duration structure
 		 *
-		 * @param $duration
+		 * @param array|object $duration
 		 *
 		 * @return float
 		 */
-		public function makeTimestamp($duration) {
+		public static function makeTimestamp($duration) {
 			if (!is_object($duration)) {
 				$duration = (object) $duration;
 			}
