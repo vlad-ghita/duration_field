@@ -132,7 +132,7 @@
 		}
 
 		public function appendFieldSchema(XMLElement $field){
-			$settings = new XMLElement('setttings');
+			$settings = new XMLElement('settings');
 
 			foreach ($this->get('settings') as $durSetting) {
 				$settings->appendChild(new XMLElement($durSetting));
