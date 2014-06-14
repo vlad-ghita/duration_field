@@ -19,8 +19,7 @@ Allows input of duration through `duration` settings:
 
 ## XML result
 
-	<duration>
-		<timestamp>2044029.75</timestamp>
+	<duration timestamp="2044029.75">
 		<weeks>3</weeks>
 		<days>2</days>
 		<hours>15</hours>
@@ -31,7 +30,7 @@ Allows input of duration through `duration` settings:
 
 ## Usage in forms
 
-1\_ Either send the duration:
+1\_ Either send the timestamp:
 
     fields[field-handle] = 123456789.123
 

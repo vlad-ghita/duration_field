@@ -38,7 +38,7 @@
 			");
 		}
 
-		public function allowDatasourceParamOutput(){
+		public function allowDatasourceParamOutput() {
 			return true;
 		}
 
@@ -112,10 +112,15 @@
 				return false;
 			}
 
-			// if no duration setting was enabled, force "seconds"
+			// enforce seconds if the minimum is not met
 			$durSettings = $this->get('settings');
-			if (empty($durSettings)) {
-				$durSettings = array('seconds');
+			if (
+				// no duration set
+				empty($durSettings)
+				// or fractions are set, without seconds
+				|| (isset($durSettings['fractions']) && !isset($durSettings['seconds']))
+			) {
+				$durSettings[] = 'seconds';
 			}
 
 			$fields['field_id'] = $id;
@@ -262,8 +267,10 @@
 		public function appendFormattedElement(XMLElement &$wrapper, $data, $encode = false, $mode = null, $entry_id = null) {
 			$result = new XMLElement($this->get('element_name'));
 
-			$result->appendChild(new XMLElement('timestamp', $data['value']));
+			// set the timestamp
+			$result->setAttribute('timestamp', $data['value']);
 
+			// set duration fields
 			$duration = $this->makeDuration($data['value']);
 
 			$settings = $this->get('settings');
@@ -283,7 +290,7 @@
 			$wrapper->appendChild($result);
 		}
 
-		public function getParameterPoolValue(array $data){
+		public function getParameterPoolValue(array $data) {
 			return $data['value'];
 		}
 
@@ -479,5 +486,4 @@
 
 			return $timestamp;
 		}
-
 	}
