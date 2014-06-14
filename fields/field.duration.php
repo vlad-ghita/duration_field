@@ -131,6 +131,16 @@
 			return Symphony::Database()->insert($fields, "tbl_fields_{$handle}");
 		}
 
+		public function appendFieldSchema(XMLElement $field){
+			$settings = new XMLElement('setttings');
+
+			foreach ($this->get('settings') as $durSetting) {
+				$settings->appendChild(new XMLElement($durSetting));
+			}
+
+			$field->appendChild($settings);
+		}
+
 
 
 		/*------------------------------------------------------------------------------------------------*/
