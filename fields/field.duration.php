@@ -263,6 +263,8 @@
 				$timestamp = $data;
 			}
 
+			$status = self::__OK__;
+
 			return array(
 				'value' => $timestamp
 			);
